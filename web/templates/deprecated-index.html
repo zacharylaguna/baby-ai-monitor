@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body>
+    <button onclick="toggleButton()">toggle</button>
+    <div style="text-align: center;">
+      <div id="demo"></div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+var x = document.getElementById("audio");
+var toggle = false;
+function loadDoc() {
+  const xhttp = new XMLHttpRequest();
+  xhttp.onload = function() {
+    // GET RESPONSE AND PUT IN HTML
+    document.getElementById("demo").innerHTML = this.responseText;
+
+    // SOUND THE ALARM
+    const myArray = this.responseText.split(" ");
+    let status = myArray[ myArray.length - 2 ];
+    console.log(status)
+    if (status === 'activated'){
+      soundAlarm();
+    }
+  }
+  xhttp.open("GET", "http://www.dev-machine.link:5000/output", true);
+  xhttp.send();
+}
+function soundAlarm(){
+  console.log('sounding the alarm');
+  var audio = new Audio('audio/alarm.mp3');
+  audio.play();
+}
+function toggleButton(){
+  this.toggle = !this.toggle;
+  console.log("toggle:" + this.toggle);
+}
+setInterval(() => {
+  if (this.toggle === true){
+    this.loadDoc();
+    console.log("Test");
+  }
+}, 5000);
+    </script>
+  </body>
+</html>

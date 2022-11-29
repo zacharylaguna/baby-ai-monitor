@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <style>
+.container {
+  display: table;
+  height: 100%;
+  width: 100%;
+}
+
+.splitdiv {
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+  width: 50%;
+  padding: 1rem;
+}
+
+.topright {
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  font-size: 18px;
+}
+.topleft {
+  position: absolute;
+  top: 8px;
+  left: 16px;
+  font-size: 18px;
+}
+.scrollbox {
+  height:300px;
+  border:1px solid #ccc;
+  overflow:auto;
+}
+
+    </style>
+  </head>
+  <body style="background-color: black; color: white">
+    <div class="topleft"><button onclick="toggleButton()">toggle</button></div>
+    <div class="topright" id="toggleStatus">OFF</div>
+    <section style="text-align: center;">
+      <div id="header"><h2>alarm <span style="color:green"> deactivated </span></h2></div>
+    </section>
+    <section class="container">
+      <div class="splitdiv"><div class="scrollbox"><div id="camera" style="margin-top: 20px;"></div></div></div>
+      <div class="splitdiv"><div class="scrollbox"><ul id="myList" style="list-style-type: none;"></ul></div></div>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+var x = document.getElementById("audio");
+var toggle = false;
+var logs = [];
+function loadDoc() {
+  const xhttp = new XMLHttpRequest();
+  xhttp.onload = function() {
+    // GET RESPONSE AND PUT IN JSON
+    res = JSON.parse( this.response );
+    console.log('retrieved:' + res); 
+    logs.push(res);
+
+    // PUT INTO HTML
+    document.getElementById("myList").innerHTML = ""; // reset list
+    let list = document.getElementById("myList"); // get ul object to add elements
+    logs.forEach((item)=>{ // add elements
+      let li = document.createElement("li");
+      let coloredStatus = '';
+      if (item['status'] === 'activated')
+        coloredStatus = 'alarm <span style="color:red"> activated </span>';
+      else
+        coloredStatus = 'alarm <span style="color:green"> deactivated </span>'
+      li.innerHTML = item['time'] + ' ' + coloredStatus;
+      list.appendChild(li);
+    })
+
+    // SOUND THE ALARM
+    if (res['status'] === 'activated'){
+      soundAlarm();
+      getCameraImage();
+      document.getElementById("header").innerHTML = '<h2>alarm <span style="color:red"> activated </span></h2>'
+    }
+    else{
+      document.getElementById("camera").innerHTML = ''
+      document.getElementById("header").innerHTML = '<h2>alarm <span style="color:green"> deactivated </span></h2>'
+
+    }
+  }
+  xhttp.open("GET", "http://www.dev-machine.link:5000/output", true);
+  xhttp.send();
+}
+function soundAlarm(){
+  console.log('sounding the alarm');
+  var audio = new Audio('audio/alarm.mp3');
+  audio.play();
+}
+
+var hash = 0 // ADDING THIS HASH PREVENTS SAME URL CALL & FORCES BROWSER TO UPDATE
+function getCameraImage(){
+  console.log('showing the camera');
+  var img = new Image(400,240);
+  img.src = 'http://www.dev-machine.link:5000/images/im-received.jpg/' + this.hash++;
+  document.getElementById("camera").innerHTML = ""; // reset camera
+  document.getElementById("camera").appendChild(img);
+}
+function toggleButton(){
+  this.toggle = !this.toggle;
+  console.log("toggle:" + this.toggle);
+  document.getElementById("toggleStatus").innerHTML = this.toggle.toString().toUpperCase(); // reset camera
+
+}
+setInterval(() => {
+  if (this.toggle === true){
+    this.loadDoc();
+    console.log("Test");
+  }
+}, 5000);
+    </script>
+  </body>
+</html>
