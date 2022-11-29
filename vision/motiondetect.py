@@ -5,6 +5,7 @@ import requests
 
 contourlist = []
 activated = False
+motion = False
 
 # defining a function to calculate mode. It
 # takes list variable as argument
@@ -49,6 +50,16 @@ def deactivateAlert():
     r = requests.get('http://dev-machine.link:5000/deactivate')
     # print(r.status_code)
 
+def activateMotion():
+    print('motion')
+    r = requests.get('http://dev-machine.link:5000/activateMotion')
+    # print(r.status_code)
+
+def deactivateMotion():
+    print('no motion')
+    r = requests.get('http://dev-machine.link:5000/deactivateMotion')
+    # print(r.status_code)
+
 PERSPECTIVES = ('TOP', 'SIDE')
 perspective = 'SIDE' # side is default
 def borderalarm(x, y, w, h, width, height):
@@ -57,17 +68,17 @@ def borderalarm(x, y, w, h, width, height):
     # is motion near the edge of camera?
     # print(activated)
     midpoint = ((x+(x+w))/2, (y+(y+h))/2)
-    if midpoint[0] < width / 8.0 or midpoint[0] > (7*width / 8.0): # midpoint is [0,width/8) or (7/8 * width, width]
+    if midpoint[0] < width / 6.0 or midpoint[0] > (5*width / 6.0): # midpoint is [0,width/8) or (7/8 * width, width]
         if activated == False:
             activateAlert()
             activated = True
         # print('activated', midpoint)
-    elif midpoint[1] < height / 8.0: # midpoint is [0,height/8) or (7/8 * height, height]
+    elif midpoint[1] < height / 6.0: # midpoint is [0,height/8) or (7/8 * height, height]
         if activated == False:
             activateAlert()
             activated = True
         # print('activated', midpoint)
-    elif midpoint[1] > (7*height / 8.0) and perspective == 'TOP': # only include bottom section if from TOP perspective
+    elif midpoint[1] > (5*height / 6.0) and perspective == 'TOP': # only include bottom section if from TOP perspective
         if activated == False:
             activateAlert()
             activated = True
@@ -80,6 +91,7 @@ def borderalarm(x, y, w, h, width, height):
 def motionDetection():
     global activated
     global contourlist
+    global motion
     cap = cv.VideoCapture(0)
     ret, frame1 = cap.read()
     ret, frame2 = cap.read()
@@ -95,28 +107,29 @@ def motionDetection():
         contours, _ = cv.findContours(
             dilated, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 
-        activationSmoothing = []
         for contour in contours:
             (x, y, w, h) = cv.boundingRect(contour)
+            # added to smooth the motion
             contourlist.append(cv.contourArea(contour))
             avg = 0
             if len(contourlist) >= 500:
                 contourlist.pop(0)
                 avg = sum(contourlist) / len(contourlist)
+            # done adding
             # if level of motion is UNDER threshold
             threshold = 900
             if cv.contourArea(contour) < threshold:
                 continue
 
             # if level of motion is OVER threshold
-            # if avg < threshold:
-            #     if activated == True:
-            #         # deactivateAlert()
-            #         activated = False
-            # else:
-            #     if activated == False:
-            #         # activateAlert()
-            #         activated = True
+            if avg < threshold:
+                if motion == True:
+                    deactivateMotion()
+                    motion = False
+            else:
+                if motion == False:
+                    activateMotion()
+                    motion = True
 
             # is motion near the edge of camera?
             # Get the height and width of the provided video frame
@@ -130,7 +143,7 @@ def motionDetection():
 
         # cv.drawContours(frame1, contours, -1, (0, 255, 0), 2)
 
-        # cv.imshow("Video", frame1)
+        cv.imshow("Video", frame1)
         cv.imwrite('image.jpg', frame1)
         sendImage()
         frame1 = frame2
