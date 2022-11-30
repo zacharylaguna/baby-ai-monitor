@@ -60,7 +60,7 @@ def deactivateMotion():
     r = requests.get('http://dev-machine.link:5000/deactivateMotion')
     # print(r.status_code)
 
-PERSPECTIVES = ('TOP', 'SIDE')
+# PERSPECTIVES = ('TOP', 'SIDE')
 perspective = 'SIDE' # side is default
 def borderalarm(x, y, w, h, width, height):
     global activated
@@ -157,9 +157,9 @@ def motionDetection():
 
 
 if __name__ == "__main__":
-    perspective = input('please input perspective (TOP or SIDE):').upper()
-    if perspective not in PERSPECTIVES:
-        print('did not choose TOP or SIDE')
-        quit()
+    # perspective = input('please input perspective (TOP or SIDE):').upper()
+    # if perspective not in PERSPECTIVES:
+        # print('did not choose TOP or SIDE')
+        # quit()
     deactivateAlert()
     motionDetection()
