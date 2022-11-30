@@ -110,9 +110,7 @@ def motionDetection():
     cap = cv.VideoCapture(0)
     ret, frame1 = cap.read()
     ret, frame2 = cap.read()
- 
-    imagenumber = 0
- 
+  
     while cap.isOpened():
         diff = cv.absdiff(frame1, frame2)
         diff_gray = cv.cvtColor(diff, cv.COLOR_BGR2GRAY)
@@ -133,18 +131,17 @@ def motionDetection():
             # done adding
             # if level of motion is UNDER threshold
             threshold = 900
+
+            # if level of motion is OVER threshold
+            if avg < threshold:
+                motion = False
+            else:
+                motion = True
+
+
             if cv.contourArea(contour) < threshold:
                 continue
  
-            # if level of motion is OVER threshold
-            if avg < threshold:
-                if motion == True:
-                    deactivateMotion()
-                    motion = False
-            else:
-                if motion == False:
-                    activateMotion()
-                    motion = True
  
             # is motion near the edge of camera?
             # Get the height and width of the provided video frame
@@ -158,6 +155,11 @@ def motionDetection():
  
         # cv.drawContours(frame1, contours, -1, (0, 255, 0), 2)
  
+        if motion == False:
+            deactivateMotion()
+        else:
+            activateMotion()
+        
         #cv.imshow("Video", frame1)
         cv.imwrite('image.jpg', frame1)
         sendImage()
